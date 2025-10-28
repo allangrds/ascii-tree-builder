@@ -34,6 +34,8 @@ export function TreeBuilder({ tree, onTreeChange }: TreeBuilderProps) {
     })
   }
 
+  const isNodeCollapsed = (nodeId: string) => collapsedFolders.has(nodeId)
+
   const updateNode = (nodeId: string, updates: Partial<TreeNode>) => {
     const updateRecursive = (node: TreeNode): TreeNode => {
       if (node.id === nodeId) {
@@ -117,7 +119,7 @@ export function TreeBuilder({ tree, onTreeChange }: TreeBuilderProps) {
             onAddChild={addChild}
             onDelete={deleteNode}
             depth={0}
-            isCollapsed={collapsedFolders.has(node.id)}
+            isNodeCollapsed={isNodeCollapsed}
             onToggleCollapse={toggleCollapse}
           />
         ))}
@@ -132,7 +134,7 @@ interface TreeNodeItemProps {
   onAddChild: (parentId: string | null, type: "file" | "folder") => void
   onDelete: (nodeId: string) => void
   depth?: number
-  isCollapsed: boolean
+  isNodeCollapsed: (nodeId: string) => boolean
   onToggleCollapse: (nodeId: string) => void
 }
 
@@ -142,12 +144,14 @@ function TreeNodeItem({
   onAddChild,
   onDelete,
   depth = 0,
-  isCollapsed,
+  isNodeCollapsed,
   onToggleCollapse,
 }: TreeNodeItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(node.name)
   const [editComment, setEditComment] = useState(node.comment)
+
+  const isCollapsed = isNodeCollapsed(node.id)
 
   const handleSave = () => {
     onUpdate(node.id, { name: editName, comment: editComment })
@@ -169,7 +173,7 @@ function TreeNodeItem({
         {node.type === "folder" ? (
           <button
             onClick={() => onToggleCollapse(node.id)}
-            className="flex-shrink-0 mt-1 hover:bg-accent rounded p-0.5 transition-colors"
+            className="shrink-0 mt-1 hover:bg-accent rounded p-0.5 transition-colors"
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -178,10 +182,10 @@ function TreeNodeItem({
             )}
           </button>
         ) : (
-          <div className="w-5 flex-shrink-0" />
+          <div className="w-5 shrink-0" />
         )}
 
-        <div className="flex-shrink-0 mt-1">
+        <div className="shrink-0 mt-1">
           {node.type === "folder" ? (
             <FolderIcon className="w-4 h-4 text-blue-500" />
           ) : (
@@ -224,7 +228,7 @@ function TreeNodeItem({
               </button>
             </div>
 
-            <div className="flex-shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="shrink-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {node.type === "folder" && (
                 <>
                   <Button
@@ -270,7 +274,7 @@ function TreeNodeItem({
             onAddChild={onAddChild}
             onDelete={onDelete}
             depth={depth + 1}
-            isCollapsed={false}
+            isNodeCollapsed={isNodeCollapsed}
             onToggleCollapse={onToggleCollapse}
           />
         ))}
