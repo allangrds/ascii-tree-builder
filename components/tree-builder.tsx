@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Plus, Trash2, FolderIcon, FileIcon } from "lucide-react"
+import { Plus, Trash2, FolderIcon, FileIcon, ChevronRight, ChevronDown } from "lucide-react"
 
 export interface TreeNode {
   id: string
@@ -20,6 +20,20 @@ interface TreeBuilderProps {
 }
 
 export function TreeBuilder({ tree, onTreeChange }: TreeBuilderProps) {
+  const [collapsedFolders, setCollapsedFolders] = useState<Set<string>>(new Set())
+
+  const toggleCollapse = (nodeId: string) => {
+    setCollapsedFolders((prev) => {
+      const next = new Set(prev)
+      if (next.has(nodeId)) {
+        next.delete(nodeId)
+      } else {
+        next.add(nodeId)
+      }
+      return next
+    })
+  }
+
   const updateNode = (nodeId: string, updates: Partial<TreeNode>) => {
     const updateRecursive = (node: TreeNode): TreeNode => {
       if (node.id === nodeId) {
@@ -103,6 +117,8 @@ export function TreeBuilder({ tree, onTreeChange }: TreeBuilderProps) {
             onAddChild={addChild}
             onDelete={deleteNode}
             depth={0}
+            isCollapsed={collapsedFolders.has(node.id)}
+            onToggleCollapse={toggleCollapse}
           />
         ))}
       </div>
@@ -116,9 +132,19 @@ interface TreeNodeItemProps {
   onAddChild: (parentId: string | null, type: "file" | "folder") => void
   onDelete: (nodeId: string) => void
   depth?: number
+  isCollapsed: boolean
+  onToggleCollapse: (nodeId: string) => void
 }
 
-function TreeNodeItem({ node, onUpdate, onAddChild, onDelete, depth = 0 }: TreeNodeItemProps) {
+function TreeNodeItem({
+  node,
+  onUpdate,
+  onAddChild,
+  onDelete,
+  depth = 0,
+  isCollapsed,
+  onToggleCollapse,
+}: TreeNodeItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(node.name)
   const [editComment, setEditComment] = useState(node.comment)
@@ -140,6 +166,21 @@ function TreeNodeItem({ node, onUpdate, onAddChild, onDelete, depth = 0 }: TreeN
         className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors group"
         style={{ marginLeft: `${depth * 20}px` }}
       >
+        {node.type === "folder" ? (
+          <button
+            onClick={() => onToggleCollapse(node.id)}
+            className="flex-shrink-0 mt-1 hover:bg-accent rounded p-0.5 transition-colors"
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+        ) : (
+          <div className="w-5 flex-shrink-0" />
+        )}
+
         <div className="flex-shrink-0 mt-1">
           {node.type === "folder" ? (
             <FolderIcon className="w-4 h-4 text-blue-500" />
@@ -220,16 +261,19 @@ function TreeNodeItem({ node, onUpdate, onAddChild, onDelete, depth = 0 }: TreeN
         )}
       </div>
 
-      {node.children.map((child) => (
-        <TreeNodeItem
-          key={child.id}
-          node={child}
-          onUpdate={onUpdate}
-          onAddChild={onAddChild}
-          onDelete={onDelete}
-          depth={depth + 1}
-        />
-      ))}
+      {!isCollapsed &&
+        node.children.map((child) => (
+          <TreeNodeItem
+            key={child.id}
+            node={child}
+            onUpdate={onUpdate}
+            onAddChild={onAddChild}
+            onDelete={onDelete}
+            depth={depth + 1}
+            isCollapsed={false}
+            onToggleCollapse={onToggleCollapse}
+          />
+        ))}
     </div>
   )
 }
