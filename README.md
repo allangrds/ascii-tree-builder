@@ -17,15 +17,15 @@ Perfect for README files, documentation, or sharing project structures in Markdo
 ### Installation
 
 Install dependencies
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
 ### Development Server
 Run the app in development mode
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 Then open your browser at http://localhost:3000
 
