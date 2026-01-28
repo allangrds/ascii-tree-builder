@@ -23,7 +23,7 @@ export function AsciiPreview({ tree }: AsciiPreviewProps) {
       // Add the current node
       result += prefix + connector + node.name + (node.type === "folder" ? "/" : "")
       if (node.comment) {
-        result += `  ${node.comment}`
+        result += `  #${node.comment}`
       }
       result += "\n"
 
